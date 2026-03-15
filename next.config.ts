@@ -6,8 +6,6 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: '/noidme-pvt-limited',
-  assetPrefix: '/noidme-pvt-limited',
 };
 
 export default nextConfig;
