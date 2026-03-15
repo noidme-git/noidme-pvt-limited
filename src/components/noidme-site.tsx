@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { CookieConsent } from "@/components/cookie-consent";
 
-const CONTENT_URL = "/content/noidme-site.json";
+const CONTENT_URL = "/noidme-pvt-limited/content/noidme-site.json";
 
 type LinkItem = {
   label: string;
