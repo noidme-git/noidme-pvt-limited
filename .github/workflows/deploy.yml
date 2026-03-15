@@ -27,13 +27,9 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Deploy built output to root of main
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          cp -r out/. .
-          touch .nojekyll
-          git add -f _next/ index.html 404.html content/ .nojekyll || true
-          git add -f $(find . -maxdepth 1 -name "*.html" -o -name "*.txt" -o -name "*.json" | grep -v node_modules) || true
-          git diff --cached --quiet || git commit -m "Deploy: update site from build output"
-          git push origin main
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out
+          publish_branch: gh-pages

@@ -6,6 +6,17 @@
 /_next
 /out
 
+# build artifacts committed to repo (never commit these)
+/docs
+/404
+/_not-found
+/content
+/.nojekyll
+/index.html
+/index.txt
+/404.html
+/__next.*
+
 # production
 /build
 
