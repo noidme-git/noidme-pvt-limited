@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CookieConsent } from "@/components/cookie-consent";
 
 const CONTENT_URL = "/content/noidme-site.json";
@@ -15,6 +15,7 @@ type SectionFeatures = {
   title: string;
   description: string;
   features: string[];
+  featuredFeatureIndex?: number;
 };
 
 type SiteContent = {
@@ -96,10 +97,22 @@ function splitYearText(suffix: string) {
   return `© ${new Date().getFullYear()} ${suffix}`;
 }
 
+function renderFeatureCards(features: string[], featuredFeatureIndex?: number) {
+  const activeFeatureIndex = typeof featuredFeatureIndex === "number" ? featuredFeatureIndex : -1;
+
+  return features.map((item, index) => (
+    <article key={item} className={`feature-card ${index === activeFeatureIndex ? "feature-card-lead" : ""}`}>
+      <p>{item}</p>
+    </article>
+  ));
+}
+
 export function NoIdMeSite() {
   const [content, setContent] = useState<SiteContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [navOpen, setNavOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -126,6 +139,18 @@ export function NoIdMeSite() {
     return () => controller.abort();
   }, []);
 
+  // Close nav on outside click
+  useEffect(() => {
+    if (!navOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setNavOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [navOpen]);
+
   if (loading) {
     return (
       <main className="site-state" aria-busy="true" aria-live="polite">
@@ -150,7 +175,7 @@ export function NoIdMeSite() {
 
       <header className="site-header">
         <div className="container nav-shell">
-          <a href="#main-content" className="brand">
+          <a href="/" className="brand">
             <span className="brand-mark" aria-hidden="true">
               <svg viewBox="0 0 64 64" role="presentation" focusable="false">
                 <defs>
@@ -180,14 +205,37 @@ export function NoIdMeSite() {
               <small>{content.site.brand.subLabel}</small>
             </span>
           </a>
-          <nav className="site-nav" aria-label="Primary">
+          <button
+            className={`nav-toggle${navOpen ? " is-open" : ""}`}
+            aria-label={navOpen ? "Close menu" : "Open menu"}
+            aria-expanded={navOpen}
+            aria-controls="primary-nav"
+            onClick={() => setNavOpen((o) => !o)}
+          >
+            <span aria-hidden="true" />
+            <span aria-hidden="true" />
+            <span aria-hidden="true" />
+          </button>
+          <nav
+            id="primary-nav"
+            className={`site-nav${navOpen ? " is-open" : ""}`}
+            aria-label="Primary"
+            ref={navRef}
+          >
             <ul>
               {content.navigation.map((item) => (
                 <li key={item.href}>
-                  <a href={item.href}>{item.label}</a>
+                  <a href={item.href} onClick={() => setNavOpen(false)}>{item.label}</a>
                 </li>
               ))}
             </ul>
+            <a
+              href={content.site.headerCta.href}
+              className="btn btn-primary nav-cta-mobile"
+              onClick={() => setNavOpen(false)}
+            >
+              {content.site.headerCta.label}
+            </a>
           </nav>
           <a href={content.site.headerCta.href} className="btn btn-primary nav-cta">
             {content.site.headerCta.label}
@@ -236,7 +284,7 @@ export function NoIdMeSite() {
           </div>
         </section>
 
-        <section className="section infographic-section" aria-labelledby="signals-title">
+        <section className="section" aria-labelledby="signals-title">
           <div className="container">
             <h2 id="signals-title">{content.impact.title}</h2>
             <p className="section-copy">{content.impact.description}</p>
@@ -265,11 +313,7 @@ export function NoIdMeSite() {
               <p className="section-note">{content.platform.note}</p>
             </div>
             <div className="card-grid card-grid-tall">
-              {content.platform.features.map((item, index) => (
-                <article key={item} className={`feature-card ${index === 0 ? "feature-card-lead" : ""}`}>
-                  <p>{item}</p>
-                </article>
-              ))}
+              {renderFeatureCards(content.platform.features, content.platform.featuredFeatureIndex)}
             </div>
             <div className="module-grid" aria-label="NoIdMe platform modules">
               {content.platform.modules.map((item) => (
@@ -289,11 +333,7 @@ export function NoIdMeSite() {
                 <h2 id="consent-title">{content.consent.title}</h2>
                 <p className="section-copy">{content.consent.description}</p>
                 <div className="card-grid">
-                  {content.consent.features.map((item) => (
-                    <article key={item} className="feature-card">
-                      <p>{item}</p>
-                    </article>
-                  ))}
+                  {renderFeatureCards(content.consent.features, content.consent.featuredFeatureIndex)}
                 </div>
               </div>
               <aside className="showcase-panel">
@@ -314,11 +354,7 @@ export function NoIdMeSite() {
             <h2 id="profiles-title">{content.profiles.title}</h2>
             <p className="section-copy">{content.profiles.description}</p>
             <div className="card-grid">
-              {content.profiles.features.map((item) => (
-                <article key={item} className="feature-card">
-                  <p>{item}</p>
-                </article>
-              ))}
+              {renderFeatureCards(content.profiles.features, content.profiles.featuredFeatureIndex)}
             </div>
           </div>
         </section>
